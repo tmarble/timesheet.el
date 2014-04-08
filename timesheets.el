@@ -4,16 +4,20 @@
 
 ;; Author: Tom Marble
 ;; URL: https://github.com/tmarble/timesheets.el
-;; Version: 0.1
+;; Version: 0.2.0
 ;; Created: 2014-04-07
 ;; Keywords: org timesheet
-;; Package-Requires: ((org) (auctex))
+;; Package-Requires: ((org "20140331") (auctex "11.87.4"))
 
 ;; This file is NOT part of GNU Emacs.
 
 ;;; Commentary:
 
 ;; TBD...
+;;
+;; This library attempts to conform to packaging conventions:
+;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Packaging.html
+;; Bugs, enhancements welcome!
 
 ;;; Usage
 
@@ -37,3 +41,9 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Code:
+
+(require 'org)
+
+;; customizations
+
+;;; timesheets.el ends here

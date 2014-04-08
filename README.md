@@ -23,4 +23,5 @@ There are several known bugs:
 ## License: GPLv3+
 
 This work is Copyright © 2014 Informatique, Inc.
-And licensed under the [GPL](LICENSE) version 3 or any later version.
+
+and is licensed under the [GPL](LICENSE) version 3 or any later version.

@@ -3,6 +3,9 @@
 # emacs backup files
 *~
 
+# LaTeX output
+auto
+
 # silly Mac filesystem
 *.DS_Store*
 *._*
