@@ -8,14 +8,13 @@ See the example [.emacs.d](example.emacs.d) configuration files for tips
 on configuring Emacs for [MELPA](http://melpa.milkbox.net/#/getting-started).
 
 Ensure TEXINPUT is set to at least (in your ~/.bashrc)
-
-````export TEXINPUTS=.:/home/tmarble/.emacs.d/elpa/auctex-11.87.4/latex:````
+* ````export TEXINPUTS=.:/home/tmarble/.emacs.d/elpa/auctex-11.87.4/latex:````
 
 Start by creating an example client...
-````M-x timesheet-example````
+* ````M-x timesheet-example````
 
 You will be viewing the buffer yoyodyne.org that already has some example time entries. Create an invoice with
-````M-x timesheet-invoice-this````
+* ````M-x timesheet-invoice-this````
 
 Next steps...
 * Customize your "company" directory where invoices are generated, your next invoice number, etc.
