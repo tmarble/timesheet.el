@@ -6,6 +6,10 @@
 # LaTeX output
 auto
 
+# Build artifacts
+*.tar
+*-pkg.el
+
 # silly Mac filesystem
 *.DS_Store*
 *._*

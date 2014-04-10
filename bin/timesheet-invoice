@@ -78,8 +78,13 @@ do_check() {
     fi
     if [ $rv -eq 0 ] && [ ! -e main.tex ]; then
         vecho "copying LaTeX invoice template"
-        for f in defs.tex main.tex info9-logo-med.pdf; do
-            cp "$(dirname $dir)/share/invoices/$f" ./
+        # share_dir="$(dirname $invoice_dir)/../../share"
+        share_dir="$(dirname $invoice_dir)"
+        share_dir="$(dirname $share_dir)"
+        share_dir="$(dirname $share_dir)/share"
+        echo "share_dir=$share_dir"
+        for f in defs.tex main.tex logo.pdf; do
+            cp "$share_dir/$f" ./
         done
     fi
     return $rv
