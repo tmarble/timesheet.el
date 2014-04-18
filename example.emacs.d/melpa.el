@@ -1,6 +1,5 @@
 ;; melpa.el
 ;; load MELPA per http://melpa.milkbox.net/#/getting-started
-(message ";;; melpa.el -- MELPA package manager")
 
 (require 'package)
 (add-to-list 'package-archives
@@ -11,6 +10,5 @@
   (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
 
 (package-initialize)
-
 
 ;; end

@@ -1,9 +1,12 @@
 ;; my-org.el
 
-(message ";;; USER/my-org.el - user specific org-mode configuration")
-
 (require 'org)
 (require 'org-faces)
+
+;; Make sure TEXINPUTS is set to
+;; export TEXINPUTS=.:$HOME/.emacs.d/elpa/auctex-11.87.4/latex:
+(unless (require 'latex nil t)
+  (message "MELPA package 'latex not yet installed..."))
 
 (setq org-agenda-files (quote ("~/Org")))
 (setq org-directory "~/Org")
@@ -240,6 +243,3 @@
 	       ((org-agenda-overriding-header "Tasks to Archive")
 		(org-agenda-skip-function 'bh/skip-non-archivable-tasks)
 		(org-tags-match-list-sublevels nil))))))
-
-
-

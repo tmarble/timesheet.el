@@ -1,8 +1,6 @@
-;; my-elisp.el
-;; keybindings
+;; bindings.el
 
-(message ";;; USER/bindings.el - user specific keybindings")
-
+(message (concat ";;; bindings.el - bindings for user: " user-login-name))
 
 ;; example timesheet bindings
 (require 'timesheet)
@@ -19,4 +17,4 @@
 (define-key outline-map (kbd "4") 'timesheet-invoice-this) ; this month
 (define-key outline-map (kbd "$") 'timesheet-invoice-last) ; last moint
 
-
+(define-key outline-map (kbd "S") 'wipe-scratch) ; demo binding to a function in my-elisp.el

@@ -4,10 +4,10 @@
 
 ;; Author: Tom Marble
 ;; URL: https://github.com/tmarble/timesheet.el
-;; Version: 0.2.27
+;; Version: 0.2.30
 ;; Created: 2014-04-07
 ;; Keywords: org timesheet
-;; Package-Requires: ((s "20131223.944") (org "20140331") (auctex "11.87.4"))
+;; Package-Requires: ((s "1") (org "7") (auctex "11.87.4"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -62,8 +62,6 @@
 
 ;;; Code:
 
-(message ";;; timesheet.el")
-
 (require 's)
 (require 'org)
 (require 'org-clock)
@@ -73,24 +71,10 @@
 
 (defvar timesheet-path (file-name-directory (or load-file-name (buffer-file-name))))
 
-;; obviously-i-didnt-find-the-right-library functions
-
-(defun timesheet-parent-dir (dir &optional nth)
-  "return the nth (default 1) parent directory for dir"
-  (interactive)
-  (let ((n (if nth (1- nth) 0))
-        (parent (file-name-directory (s-chop-suffix "/" dir))))
-    (if (zerop n)
-        parent
-      (timesheet-parent-dir parent n))))
-
-;; make sure we return a trailing slash!
 (defun timesheet-home-dir ()
-  "return the user's HOME directory"
-  (interactive)
-  (let ((home (or (getenv "HOME")
-                  (timesheet-parent-dir timesheet-path 4))))
-    (concat (s-chop-suffix "/" home) "/")))
+  "Return the user's HOME directory."
+  (file-name-as-directory (or (getenv "HOME")
+                              (expand-file-name "~"))))
 
 ;; customizations
 
@@ -100,29 +84,30 @@
   :group 'org)
 
 (defcustom timesheet-invoice-number 100
-  "next invoice number"
+  "Next invoice number."
   :type '(integer)
   :group 'timesheet
   )
 
 (defcustom timesheet-invoice-script
-  (concat timesheet-path "bin/timesheet-invoice")
-  "script to create a timesheet-invoice"
+  (expand-file-name "timesheet-invoice" (expand-file-name "bin" timesheet-path))
+  "Script to create a timesheet-invoice."
   :type 'string
   :group 'timesheet
   )
 
 (defcustom timesheet-company-dir
-  (concat (timesheet-home-dir) "Timesheet")
-  "Parent directory for timesheet invoices"
+  (expand-file-name "Timesheet" (timesheet-home-dir))
+  "Parent directory for timesheet invoices."
   :type 'string
   :group 'timesheet
   )
 
 ;; get the next invoice number (and increment the counter)
 ;; if the argument is given.. set the next invoice number
+;;;###autoload
 (defun timesheet-next-invoice (&optional invoice)
-  "Get next invoice number"
+  "Get next invoice number (following timesheet-invoice-number or INVOICE if present)."
   (interactive)
   (let* ((next-invoice (if invoice invoice timesheet-invoice-number))
          (arg (list 'timesheet-invoice-number (1+ next-invoice))))
@@ -135,34 +120,36 @@
 
 (defvar timesheet-debug-msg-delay 3)
 
+;;;###autoload
 (defun timesheet-debug-msg (&rest msgs)
-  "display a message"
+  "Display some debug MSGS."
   (interactive)
   (message (apply 'concat msgs))
   (redisplay t)
   (sleep-for timesheet-debug-msg-delay))
 
+;;;###autoload
 (defun timesheet-debug-time (time &rest msgs)
-  "display a time message"
+  "Display TIME with some debug MSGS."
   (interactive)
   (let ((at-time (if time time (current-time))))
     (apply 'timesheet-debug-msg (cons (format-time-string "%Y-%m-%d %a %H:%M:%S" at-time) msgs))))
 
+;;;###autoload
 (defun timesheet-debug-time-cal (time-cal &rest msgs)
-  "display a time message (cal format)"
+  "Display TIME-CAL with some debug MSGS."
   (interactive)
   (apply 'timesheet-debug-time (cons (apply 'encode-time time-cal) msgs)))
 
 ;; functions
 
 (defun timesheet-template-files ()
-  "return a list of pathnames for timesheet template files"
-  (interactive)
-  (let ((share-dir (concat timesheet-path "share")))
+  "Return a list of pathnames for timesheet template files."
+  (let ((share-dir (expand-file-name "share" timesheet-path)))
     (directory-files share-dir t "\.[tpo][edr][xfg]$"))) ;; .tex .pdf .org
 
 (defun timesheet-round-time-down (tl)
-  "round the time (timelist format) do the previous quarter hour"
+  "Round the time in TL (timelist format) to the previous quarter hour."
   (let* ((s (car tl))
          (m (nth 1 tl))
          (h (nth 2 tl))
@@ -172,7 +159,7 @@
                 (cons h rest)))))
 
 (defun timesheet-round-time-up (tl)
-  "round the time (timelist format) do the next quarter hour"
+  "Round the time in TL (timelist format) do the next quarter hour."
   (let* ((s (car tl))
          (m (nth 1 tl))
          (h (nth 2 tl))
@@ -192,13 +179,13 @@
     tup))
 
 (defun timesheet-get-heading-path ()
-  "returns the full heading path"
-  (interactive)
+  "Return the full heading path."
   (append (org-get-outline-path) (list (nth 4 (org-heading-components)))))
 
+;;;###autoload
 (defun timesheet-clock-update-timeclock (&optional withpath)
   "If this is a CLOCK line, update /round it and return t.
-Otherwise, return nil."
+Otherwise, return nil. Optionally using WITHPATH."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -249,7 +236,7 @@ Otherwise, return nil."
           ))))))
 
 (defun timesheet-same-day-p (t1 t2)
-  "returns true of t1 and t2 (timelist format) are on the same day"
+  "Return true of T1 and T2 (timelist format) are on the same day."
   (let* ((dt1 (decode-time t1))
          (dt2 (decode-time t2)))
     (and (= (nth 5 dt1) (nth 5 dt2))
@@ -257,8 +244,7 @@ Otherwise, return nil."
          (= (nth 3 dt1) (nth 3 dt2)))))
 
 (defun timesheet-midnight (day-time)
-  "round a time to timesheet-midnight on that day"
-  (interactive)
+  "Round DAY-TIME to timesheet-midnight on that day."
   (let* ((day-time-cal (decode-time day-time))
          (day-cal (append '(0 0 0)
                           (nthcdr 3 day-time-cal)))
@@ -266,28 +252,30 @@ Otherwise, return nil."
     day))
 
 (defun timesheet-add-days (time days)
-  "add positive (or negative) number of days to the time"
-  (interactive)
+  "Offset TIME by a positive (or negative) number of DAYS."
   (let* ((day (* 60 60 24))
          (d (abs days))
          (time-func (if (< days 0) 'time-subtract 'time-add))
          (time2 (funcall time-func time (seconds-to-time (* d day)))))
     time2))
 
+;;;###autoload
 (defun timesheet-today ()
-  "date for calculating timesheet: today"
+  "Date for calculating timesheet: today."
   (interactive)
   (let* ((now (current-time))
          (today (timesheet-midnight now)))
     today))
 
+;;;###autoload
 (defun timesheet-yesterday ()
-  "date for calculating timesheet: yesterday"
+  "Date for calculating timesheet: yesterday."
   (interactive)
   (timesheet-add-days (timesheet-today) -1))
 
+;;;###autoload
 (defun timesheet-at-point ()
-  "date for calculating timesheet: current clock line"
+  "Date for calculating timesheet: current clock line."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -300,8 +288,7 @@ Otherwise, return nil."
           (timesheet-midnight (apply 'encode-time (org-parse-time-string (match-string 1)))))))))
 
 (defun timesheet-heading ()
-  "Goto (or create) the Timesheet heading"
-  (interactive)
+  "Goto (or create) the Timesheet heading."
   (let* ((timesheet (org-find-exact-headline-in-buffer "Timesheet" nil t)))
     (when timesheet
       (goto-char timesheet))
@@ -314,8 +301,7 @@ Otherwise, return nil."
 ;; BUG: on creating the month heading for a new month... it ends up AFTER
 ;; the summary (it should be before!)
 (defun timesheet-heading-month (day)
-  "Goto (or create) the Timesheet/month heading"
-  (interactive)
+  "Goto (or create) the Timesheet/month heading for DAY."
   (timesheet-heading)
   (let* ((yyyy-mm (format-time-string "%Y-%m" day))
          (m-head (org-goto-first-child))
@@ -345,8 +331,7 @@ Otherwise, return nil."
 
 ;; FIX: insert in order
 (defun timesheet-heading-day (day)
-  "Goto (or create) the Timesheet/month/day heading"
-  (interactive)
+  "Goto (or create) the Timesheet/month/day heading for DAY."
   (timesheet-heading-month day)
   ;; (timesheet-debug-msg "timesheet-heading-day BEGIN")
   ;; (timesheet-debug-msg "timesheet-heading-day BEGIN 2")
@@ -386,7 +371,7 @@ Otherwise, return nil."
     ))
 
 (defun timesheet-cmp-task (atask btask)
-  "compare two tasks and return t if atask < btask"
+  "Compare two tasks and return t if ATASK < BTASK."
   (let* ((apath (car atask))
          (bpath (car btask))
          (alen (length apath))
@@ -411,6 +396,7 @@ Otherwise, return nil."
     cmp))
 
 (defun timesheet-paths-same-p (a b)
+  "Return t if paths A and B are the same."
   (when (and (listp a)
              (listp b)
              (= (length a) (length b)))
@@ -429,7 +415,7 @@ Otherwise, return nil."
       )))
 
 (defun timesheet-rollup-times (clocks)
-  "sort and rollup clocks"
+  "Sort and rollup CLOCKS."
   (let* (clock
          task
          tasks
@@ -492,8 +478,7 @@ Otherwise, return nil."
     ))
 
 (defun timesheet-calc (day)
-  "calculate timesheet for the given day"
-  (interactive)
+  "Calculate timesheet for the given DAY."
   (let* ((clocks (timesheet-clocks day (timesheet-add-days day 1)))
          (tasks (timesheet-rollup-times clocks))
          (day-hours (nth 3 (pop tasks)))
@@ -524,8 +509,7 @@ Otherwise, return nil."
     ))
 
 (defun timesheet-clocks (start-time end-time)
-  "returns a list of clocks for the time interval"
-  (interactive)
+  "Return a list of clocks for the time interval given by START-TIME and END-TIME."
   (save-excursion
     (save-restriction
       (let (day-times sehp)
@@ -542,26 +526,30 @@ Otherwise, return nil."
         day-times
         ))))
 
+;;;###autoload
 (defun timesheet-calc-today ()
-  "calculate timesheet for today"
+  "Calculate timesheet for today."
   (interactive)
   (timesheet-calc (timesheet-today)))
 
+;;;###autoload
 (defun timesheet-calc-yesterday ()
-  "calculate timesheet for yesterday"
+  "Calculate timesheet for yesterday."
   (interactive)
   (timesheet-calc (timesheet-yesterday)))
 
+;;;###autoload
 (defun timesheet-calc-at-point ()
-  "calculate timesheet for the date on this line"
+  "Calculate timesheet for the date on this line."
   (interactive)
   (let ((day (timesheet-at-point)))
     (if day
         (timesheet-calc day)
       (message (concat "no " org-clock-string " at point!")))))
 
+;;;###autoload
 (defun timesheet-weekly-at-point ()
-  "calculate week for the date on this line"
+  "Calculate week for the date on this line."
   (interactive)
   (let ((day (timesheet-at-point)))
     (if day
@@ -569,6 +557,7 @@ Otherwise, return nil."
       (message (concat "no " org-clock-string " at point!")))))
 
 (defun timesheet-cmp-string-lists (asl bsl)
+  "Compare two string lists and return t if ASL < BSL."
   (let ((i 0)
         (cmp 0)) ;; -1 <, 0 =, 1 >
     (while (and (= cmp 0) (> (length asl) i) (> (length bsl) i))
@@ -585,8 +574,7 @@ Otherwise, return nil."
     (= cmp -1)))
 
 (defun timesheet-project-times ()
-  "get list of project times for the given week"
-  (interactive)
+  "Get list of project times for the given week."
   (save-excursion
     (save-restriction
       (timesheet-heading)
@@ -609,8 +597,7 @@ Otherwise, return nil."
         ))))
 
 (defun timesheet-goto-weekly ()
-  "Goto (or create) the Weekly heading"
-  (interactive)
+  "Goto (or create) the Weekly heading."
   (let* ((weekly (org-find-exact-headline-in-buffer "Weekly" nil t)))
     (when weekly
       (goto-char weekly))
@@ -622,8 +609,8 @@ Otherwise, return nil."
 
 ;; FIX: insert in order
 (defun timesheet-heading-week (week &optional delete-existing-week)
-  "Goto (or create) the Timesheet/week heading"
-  (interactive)
+  "Goto (or create) the Timesheet WEEK heading.
+If DELETE-EXISTING-WEEK is set then the old heading is removed."
   (timesheet-goto-weekly)
   (recenter-top-bottom 1)
   (let* ((week-sunday (timesheet-add-days week 6))
@@ -664,16 +651,16 @@ Otherwise, return nil."
     week-label
     ))
 
+;;;###autoload
 (defun timesheet-table-goto (top col row)
-  "move to a position in the table"
+  "In the table given at TOP move to a position COL ROW."
   (interactive)
   (goto-char top)
   (forward-line row)
   (org-table-goto-column col))
 
 (defun timesheet-weekly (week)
-  "calculate weekly timesheet for the given week"
-  (interactive)
+  "Calculate weekly timesheet for the given WEEK."
   (let* ((all-project-times (timesheet-project-times))
          (week-label (timesheet-heading-week week t))
          project-times ;; day project hours
@@ -743,8 +730,7 @@ Otherwise, return nil."
     ))
 
 (defun timesheet-week-time (time)
-  "round time to beginning of the week"
-  (interactive)
+  "Round TIME to beginning of the week."
   (let* ((time-cal (decode-time time))
          (dow (nth 6 time-cal)) ;; 0 == Sunday
          (day (* 60 60 24))) ; in seconds
@@ -753,34 +739,37 @@ Otherwise, return nil."
     (timesheet-midnight (time-subtract time (seconds-to-time (* day (1- dow)))))))
 
 (defun timesheet-week-number (time)
-  "calculate the ISO week number for this time"
-  (interactive)
+  "Calculate the ISO week number for this TIME."
   (let* ((w-str (format-time-string "%W" time))
          (w (string-to-number w-str)))
     (1+ w)))
 
+;;;###autoload
 (defun timesheet-this-week ()
-  "date for calculating timesheet: today"
+  "Date for calculating timesheet: today."
   (interactive)
   (let* ((now (current-time))
          (week (timesheet-week-time now)))
     week))
 
+;;;###autoload
 (defun timesheet-last-week ()
-  "date for calculating timesheet: yesterday"
+  "Date for calculating timesheet: yesterday."
   (interactive)
   (let* ((this (timesheet-this-week))
          (day (* 60 60 24)) ; in seconds
          (last (time-subtract this (seconds-to-time (* 7 day)))))
     last))
 
+;;;###autoload
 (defun timesheet-weekly-this ()
-  "calculate timesheet this week"
+  "Calculate timesheet this week."
   (interactive)
   (timesheet-weekly (timesheet-this-week)))
 
+;;;###autoload
 (defun timesheet-weekly-last ()
-  "calculate timesheet last week"
+  "Calculate timesheet last week."
   (interactive)
   (timesheet-weekly (timesheet-last-week)))
 
@@ -831,7 +820,7 @@ Otherwise, return nil."
 
 ;; BUG: this is USD centric :(
 (defun timesheet-currency (v)
-  "return currency value"
+  "Return currency value for V."
   (let* ((fv (format "$%3.2f" v))
          (len (length fv)))
     (cond ((>= v 1000000.00)
@@ -845,8 +834,7 @@ Otherwise, return nil."
            fv))))
 
 (defun timesheet-month-time (&optional time)
-  "round time to beginning of the month"
-  (interactive)
+  "Round `current-time' (or TIME if given) to beginning of the month."
   (let* ((at-time (if time time (current-time)))
          (time-cal (decode-time at-time))
          (first-cal (list (car time-cal)
@@ -857,29 +845,32 @@ Otherwise, return nil."
                           (nth 5 time-cal))))
     (timesheet-midnight (apply 'encode-time first-cal))))
 
+;;;###autoload
 (defun timesheet-this-month ()
-  "date for calculating timesheet: this month"
+  "Date for calculating timesheet: this month."
   (interactive)
   (timesheet-month-time))
 
 (defun timesheet-days-in-month (year month)
-  "how many days in the month in year"
-  (interactive)
+  "How many days in the month given by YEAR MONTH."
   (let* ((jason '(0 31 28 31 30 31 30 31 31 30 31 30 31))
          (days (nth month jason)))
     (if (and (= month 2) (date-leap-year-p year))
         (1+ days)
       days)))
 
+;;;###autoload
 (defun timesheet-last-month ()
-  "date for calculating timesheet: last month"
+  "Date for calculating timesheet: last month."
   (interactive)
   (let* ((this-month (timesheet-this-month))
          (secs-per-day (* 60 60 24))) ; in seconds
     (timesheet-month-time (time-subtract this-month (seconds-to-time secs-per-day)))))
 
+;;;###autoload
 (defun timesheet-last-day-in-month (&optional time)
-  "return the date for the last day in this month"
+  "Return the date for the last day in this month.
+Current month or month for TIME if present."
   (interactive)
   (let* ((at-time (if time time (current-time)))
          (time-cal (decode-time at-time))
@@ -894,26 +885,31 @@ Otherwise, return nil."
     (apply 'encode-time last-cal)
     ))
 
+;;;###autoload
 (defun timesheet-first-day-next-month (&optional time)
-  "return the date for the first day in the next month"
+  "Return the date for the first day in the next month.
+Current month or month for TIME if present."
   (interactive)
   (let* ((last-day (timesheet-last-day-in-month time))
          (secs-per-day (* 60 60 24))) ; in seconds
     (timesheet-month-time (time-add last-day (seconds-to-time secs-per-day)))))
 
+;;;###autoload
 (defun timesheet-invoice-this ()
-  "calculate invoice this month"
+  "Calculate invoice this month."
   (interactive)
   (timesheet-invoice (timesheet-this-month)))
 
+;;;###autoload
 (defun timesheet-invoice-last ()
-  "calculate invoice last month"
+  "Calculate invoice last month."
   (interactive)
   (timesheet-invoice (timesheet-last-month)))
 
 ;; MUST leave point at end of line so inserting subtrees works as expected
+;;;###autoload
 (defun timesheet-goto-invoices ()
-  "Goto (or create) the Invoices heading"
+  "Goto (or create) the Invoices heading."
   (interactive)
   (let* ((invoices (org-find-exact-headline-in-buffer "Invoices" nil t)))
     (when invoices
@@ -926,8 +922,9 @@ Otherwise, return nil."
     (end-of-line)
     ))
 
+;;;###autoload
 (defun timesheet-goto-invoice (month)
-  "goto the invoice for the month"
+  "Goto the invoice for the MONTH."
   (interactive)
   (timesheet-goto-invoices)  ;; 2013-06 Invoice #430
   (let* ((yyyy-mm (format-time-string "%Y-%m" month))
@@ -989,8 +986,7 @@ Otherwise, return nil."
   )
 
 (defun timesheet-american-month (month)
-  "return Month DD, YYYY"
-  (interactive)
+  "Using MONTH return Month DD, YYYY."
   (let* ((mname (format-time-string "%B" month))
          (m (nth 3 (decode-time month)))
          (space (if (< m 10) "" " "))
@@ -998,13 +994,16 @@ Otherwise, return nil."
     (concat mname space dd-yyyy)))
 
 (defun timesheet-invoice (month)
-  "calculate weekly timesheet for the given week"
-  (interactive)
+  "Prepare invoice for the given MONTH."
   ;; if this is a new invoice, get the next invoice number
   ;; else preserve the existing number
   (let* ((yyyy-mm (format-time-string "%Y-%m" month))
          (customer (org-table-get-constant "customer"))
-         (invoice-dir (concat timesheet-company-dir "/" customer "/Invoices/" yyyy-mm))
+         (invoice-dir
+          (expand-file-name yyyy-mm
+                            (expand-file-name "Invoices"
+                                              (expand-file-name customer
+                                                                timesheet-company-dir))))
          (next-month (timesheet-first-day-next-month month))
          (invoice (timesheet-goto-invoice month))
          (invoice-str (int-to-string invoice))
@@ -1019,7 +1018,7 @@ Otherwise, return nil."
     (org-set-property "DueDate" (timesheet-american-month (timesheet-last-day-in-month next-month)))
     (org-set-property "TotalHours" "0.00")
     (org-set-property "AmountDue" "0.00")
-    (org-set-property "TABLE_EXPORT_FILE" (concat invoice-dir "/header.tsv"))
+    (org-set-property "TABLE_EXPORT_FILE" (expand-file-name "header.tsv" invoice-dir))
     (org-set-property "TABLE_EXPORT_FORMAT" "orgtbl-to-tsv")
     (org-set-property "PDF" (concat "file://" invoice-dir "/Invoice-" invoice-str ".pdf"))
     ;; move below the properties
@@ -1057,7 +1056,7 @@ Otherwise, return nil."
     (goto-char header-top)
     (forward-line)
     (org-get-next-sibling) ;; Detail
-    (org-set-property "TABLE_EXPORT_FILE" (concat invoice-dir "/detail.tsv"))
+    (org-set-property "TABLE_EXPORT_FILE" (expand-file-name "detail.tsv" invoice-dir))
     (org-set-property "TABLE_EXPORT_FORMAT" "orgtbl-to-tsv")
     ;; move below the properties
     (org-get-next-sibling)
@@ -1143,8 +1142,7 @@ Otherwise, return nil."
     ))
 
 (defun timesheet-run (script &rest args)
-  "run a company script"
-  (interactive)
+  "Run a company specific SCRIPT (with optional ARGS) to generate the timesheet."
   (let ((buffer-name "*timesheet-run*"))
     (unless (file-executable-p script)
       (user-error "The script does not exist: %s" script))
@@ -1155,14 +1153,15 @@ Otherwise, return nil."
           (message (format "%s failed with %d" script rv)))
         rv))))
 
+;;;###autoload
 (defun timesheet-example ()
-  "Setup a timesheet example with a customer called Yoyodyne"
+  "Setup a timesheet example with a customer called Yoyodyne."
   (interactive)
   (let* ((org-file "yoyodyne.org")
          (customer "Yoyodyne")
-         (share-dir (concat timesheet-company-dir "/share/"))
-         (customer-dir (concat timesheet-company-dir "/" customer "/"))
-         (customer-org (concat customer-dir org-file)))
+         (share-dir (file-name-as-directory (expand-file-name "share" timesheet-company-dir)))
+         (customer-dir (file-name-as-directory (expand-file-name customer timesheet-company-dir)))
+         (customer-org (expand-file-name org-file customer-dir)))
     (message (format "Making timesheet example with customer: %s" customer))
     (make-directory share-dir t)
     (make-directory customer-dir t)
