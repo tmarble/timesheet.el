@@ -129,7 +129,7 @@ do_latex() {
     printf "%sdef%sbilltoC{$billto3}\n" $b $b >> header.tex
     # detail.tsv -> detail.tex
     echo "%% detail.tex" > detail.tex
-    n=$(wc -l detail.tsv | awk {'print $1'})
+    n=$(wc -l detail.tsv | cut -d\  -f1)
     i=2
     while [ $i -lt $n ]; do
         day="$(tail -n +$i detail.tsv | head -1 | cut -f1)"
