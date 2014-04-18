@@ -8,12 +8,17 @@ NAME := $(subst .el,,$(REPO))
 PKG := $(NAME)-pkg.el
 DESC := $(shell head -1 $(REPO) | sed 's/^.*--- \(.*\)$$/\1/' )
 VERSION := $(shell awk '/Version:/ { print $$3; }' $(REPO))
+TIMESHEET_VERSION := $(shell awk 'BEGIN {FS="\"";} /defconst timesheet-version/ {print $$2;}' $(REPO))
 REQUIRES := '(quote $(shell awk '/Package-Requires:/ { for (i = 3; i <= NF; i++) printf("%s ", $$i); print ""; }' $(REPO)) )'
 TARBALL := $(NAME)-$(VERSION).tar
 
 all: tarball
 
-$(PKG): $(REPO)
+check-version:
+	@if [ "$(TIMESHEET_VERSION)" != "$(VERSION)" ]; then echo "error: update timesheet-version to match ;; Version:"; exit 1; fi
+	@echo building $(REPO) version $(VERSION)
+
+$(PKG): check-version $(REPO)
 	@echo updating package meta information from $< to $@
 	printf "(define-package \"%s\" \"%s\" \"%s\" %s)" $(NAME) $(VERSION) "$(DESC)" $(REQUIRES) > $@
 
@@ -30,5 +35,6 @@ vars:
 	@echo PKG=$(PKG)
 	@echo DESC=$(DESC)
 	@echo VERSION=$(VERSION)
+	@echo TIMESHEET_VERSION=$(TIMESHEET_VERSION)
 	@echo REQUIRES=$(REQUIRES)
 	@echo TARBALL=$(TARBALL)

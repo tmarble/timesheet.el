@@ -4,7 +4,7 @@
 
 ;; Author: Tom Marble
 ;; URL: https://github.com/tmarble/timesheet.el
-;; Version: 0.2.31
+;; Version: 0.2.32
 ;; Created: 2014-04-07
 ;; Keywords: org timesheet
 ;; Package-Requires: ((s "1") (org "7") (auctex "11.87.4"))
@@ -69,8 +69,8 @@
 
 ;; vars
 
-;; timesheet-version should match the Version: comment above
-(defconst timesheet-version "0.2.31")
+;; timesheet-version should match the Version comment above
+(defconst timesheet-version "0.2.32")
 
 (defconst timesheet-path (file-name-directory (or load-file-name (buffer-file-name))))
 
