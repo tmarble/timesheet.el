@@ -4,7 +4,7 @@
 
 ;; Author: Tom Marble
 ;; URL: https://github.com/tmarble/timesheet.el
-;; Version: 0.2.30
+;; Version: 0.2.31
 ;; Created: 2014-04-07
 ;; Keywords: org timesheet
 ;; Package-Requires: ((s "1") (org "7") (auctex "11.87.4"))
@@ -89,7 +89,7 @@
 
 (defcustom timesheet-invoice-script
   (expand-file-name "timesheet-invoice" (expand-file-name "bin" timesheet-path))
-  "Script to create a timesheet-invoice."
+  "Script to create a timesheet invoice."
   :type 'string
   :group 'timesheet)
 
@@ -103,7 +103,7 @@
 ;; if the argument is given.. set the next invoice number
 ;;;###autoload
 (defun timesheet-next-invoice (&optional invoice)
-  "Get next invoice number (following timesheet-invoice-number or INVOICE if present)."
+  "Get next invoice number (following `timesheet-invoice-number' or INVOICE if present)."
   (interactive)
   (let* ((next-invoice (if invoice invoice timesheet-invoice-number))
          (arg (list 'timesheet-invoice-number (1+ next-invoice))))
@@ -181,7 +181,7 @@
 ;;;###autoload
 (defun timesheet-clock-update-timeclock (&optional withpath)
   "If this is a CLOCK line, update /round it and return t.
-Otherwise, return nil. Optionally using WITHPATH."
+Otherwise, return nil.  Optionally using WITHPATH."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -240,7 +240,7 @@ Otherwise, return nil. Optionally using WITHPATH."
          (= (nth 3 dt1) (nth 3 dt2)))))
 
 (defun timesheet-midnight (day-time)
-  "Round DAY-TIME to timesheet-midnight on that day."
+  "Round DAY-TIME to midnight on that day."
   (let* ((day-time-cal (decode-time day-time))
          (day-cal (append '(0 0 0)
                           (nthcdr 3 day-time-cal)))
