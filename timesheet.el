@@ -69,12 +69,11 @@
 
 ;; vars
 
-(defvar timesheet-path (file-name-directory (or load-file-name (buffer-file-name))))
+(defconst timesheet-path (file-name-directory (or load-file-name (buffer-file-name))))
 
 (defun timesheet-home-dir ()
   "Return the user's HOME directory."
-  (file-name-as-directory (or (getenv "HOME")
-                              (expand-file-name "~"))))
+  (file-name-as-directory (expand-file-name "~")))
 
 ;; customizations
 
@@ -86,22 +85,19 @@
 (defcustom timesheet-invoice-number 100
   "Next invoice number."
   :type '(integer)
-  :group 'timesheet
-  )
+  :group 'timesheet)
 
 (defcustom timesheet-invoice-script
   (expand-file-name "timesheet-invoice" (expand-file-name "bin" timesheet-path))
   "Script to create a timesheet-invoice."
   :type 'string
-  :group 'timesheet
-  )
+  :group 'timesheet)
 
 (defcustom timesheet-company-dir
   (expand-file-name "Timesheet" (timesheet-home-dir))
   "Parent directory for timesheet invoices."
   :type 'string
-  :group 'timesheet
-  )
+  :group 'timesheet)
 
 ;; get the next invoice number (and increment the counter)
 ;; if the argument is given.. set the next invoice number
@@ -146,7 +142,7 @@
 (defun timesheet-template-files ()
   "Return a list of pathnames for timesheet template files."
   (let ((share-dir (expand-file-name "share" timesheet-path)))
-    (directory-files share-dir t "\.[tpo][edr][xfg]$"))) ;; .tex .pdf .org
+    (directory-files share-dir t (concat "\\." (regexp-opt '("tex" "pdf" "org"))  "\\'"))))
 
 (defun timesheet-round-time-down (tl)
   "Round the time in TL (timelist format) to the previous quarter hour."
