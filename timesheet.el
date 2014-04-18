@@ -69,6 +69,9 @@
 
 ;; vars
 
+;; timesheet-version should match the Version: comment above
+(defconst timesheet-version "0.2.31")
+
 (defconst timesheet-path (file-name-directory (or load-file-name (buffer-file-name))))
 
 (defun timesheet-home-dir ()
