@@ -4,7 +4,7 @@
 
 ;; Author: Tom Marble
 ;; URL: https://github.com/tmarble/timesheet.el
-;; Version: 0.2.32
+;; Version: 0.2.33
 ;; Created: 2014-04-07
 ;; Keywords: org timesheet
 ;; Package-Requires: ((s "1") (org "7") (auctex "11.87.4"))
@@ -70,7 +70,7 @@
 ;; vars
 
 ;; timesheet-version should match the Version comment above
-(defconst timesheet-version "0.2.32")
+(defconst timesheet-version "0.2.33")
 
 (defconst timesheet-path (file-name-directory (or load-file-name (buffer-file-name))))
 
@@ -1110,12 +1110,13 @@ Current month or month for TIME if present."
               (setq prev-day day)
               (setq prev-hours hours)
               ))))
-      ;; emit last day
-      (insert prev-day)
-      (org-table-next-field)
-      (insert prev-projects)
-      (org-table-next-field)
-      (insert prev-hours)
+      ;; emit last day (if there has been at least one day)
+      (when (and prev-day prev-projects prev-hours)
+        (insert prev-day)
+        (org-table-next-field)
+        (insert prev-projects)
+        (org-table-next-field)
+        (insert prev-hours))
       )
     ;; compute formulae in table
     (org-table-iterate)
