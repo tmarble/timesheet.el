@@ -4,7 +4,9 @@ Timesheet management add-on for Emacs org-mode
 
 NOTE: the latest stable version is `0.3.0` which should
 
-correspond to this MELPA version: [timesheet 20150831.933](https://melpa.org/#/timesheet)
+correspond to this MELPA version: [timesheet](https://melpa.org/#/timesheet)
+
+[![MELPA](https://melpa.org/packages/timesheet-badge.svg)](https://melpa.org/#/timesheet)
 
 ## Usage
 
