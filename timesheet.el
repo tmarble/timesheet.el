@@ -699,7 +699,7 @@ If DELETE-EXISTING-WEEK is set then the old heading is removed."
     (insert "|           |     |     |     |     |     |     |     |         |\n")
     (insert "|-----------+-----+-----+-----+-----+-----+-----+-----+---------|\n")
     (insert "| /Daily/   |     |     |     |     |     |     |     |         |\n")
-    (insert "#+TBLFM: @I$9..@II$9=vsum($2..$8);%.2f;::@II$2..@III$9='(format \"%3.2f\" (apply '+ '(@I..@II)));N;\n")
+    (insert "#+TBLFM: @2$9..@-1$9=vsum($2..$8);%.2f;::@>$2..@>$9='(format \"%3.2f\" (apply '+ '(@2..@-1)));N;\n")
     (insert "#+END:")
     ;; sort by project
     (dolist (p project-rows)
@@ -1074,7 +1074,7 @@ Current month or month for TIME if present."
     (insert "|----------+-------------+----------+--------+-----------|\n")
     (insert "| /Month/  |             |     0.00 |        |      0.00 |\n")
     (insert "|----------+-------------+----------+--------+-----------|\n")
-    (insert "#+TBLFM: $4=$rate;%3.2f;::$5=$3*$rate;%3.2f;::@III$3..@IIII$3=vsum(@II$3..@III$3);%3.2f;::@III$4..@IIII$4=string(\"/Total/\");::@III$5..@IIII$5=vsum(@II$5..@III$5);%3.2f::\n")
+    (insert "#+TBLFM: $4=$rate;%3.2f;::$5=$3*$rate;%3.2f;::@>$3=vsum(@2$3..@-1$3);%3.2f;::@>$4=string(\"/Total/\");::@>$5=vsum(@2$5..@-1$5);%3.2f::\n")
     (insert "#+END:")
     (org-get-last-sibling)
     (forward-line)
