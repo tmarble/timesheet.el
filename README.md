@@ -2,6 +2,10 @@
 
 Timesheet management add-on for Emacs org-mode
 
+NOTE: the latest stable version is `0.3.0` which should
+
+correspond to this MELPA version: [timesheet 20150831.933](https://melpa.org/#/timesheet)
+
 ## Usage
 
 See the example [.emacs.d](example.emacs.d) configuration files for tips
