@@ -8,7 +8,7 @@ See the example [.emacs.d](example.emacs.d) configuration files for tips
 on configuring Emacs for [MELPA](http://melpa.milkbox.net/#/getting-started).
 
 Ensure TEXINPUT is set to at least (in your ~/.bashrc)
-* ````export TEXINPUTS=.:$HOME/.emacs.d/elpa/auctex-11.87.4/latex:````
+* ````export TEXINPUTS=.:$HOME/.emacs.d/elpa/auctex-11.88.8/latex:````
 
 Start by creating an example client...
 * ````M-x timesheet-example````
@@ -42,6 +42,6 @@ There are several known bugs:
 
 ## License: GPLv3+
 
-This work is Copyright © 2014 Informatique, Inc.
+This work is Copyright © 2014-2015 Informatique, Inc.
 
 and is licensed under the [GPL](LICENSE) version 3 or any later version.

@@ -24,7 +24,8 @@
       user-default-dir (file-name-as-directory (expand-file-name "default" users-dir))
       user-specific-dir (file-name-as-directory (expand-file-name user-login-name users-dir)))
 
-(add-to-list 'load-path dotfiles-dir)
+;; this is now deprecated
+;; (add-to-list 'load-path dotfiles-dir)
 
 (defun init-load (filename &optional noerror)
   "Load FILENAME and provide message when init-verbose passing in optional NOERROR."
@@ -32,7 +33,7 @@
     (message (format ";; LOAD: %s -------------------------" filename)))
   (load filename noerror))
 
-(init-load "melpa.el")
+(init-load (expand-file-name "melpa.el" dotfiles-dir))
 
 ;; Check if MELPA is installed
 (unless (require 's nil t)
@@ -52,6 +53,6 @@
     (mapc #'load (directory-files dir nil ".*el$"))))
 
 ;; customization file
-(init-load "custom.el" 'noerror)
+(init-load (expand-file-name "custom.el" dotfiles-dir) 'noerror)
 
 ;; end

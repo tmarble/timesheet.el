@@ -4,10 +4,10 @@
 
 ;; Author: Tom Marble
 ;; URL: https://github.com/tmarble/timesheet.el
-;; Version: 0.2.33
-;; Created: 2014-04-07
+;; Version: 0.3.0
+;; Created: 2015-08-31
 ;; Keywords: org timesheet
-;; Package-Requires: ((s "1") (org "7") (auctex "11.87.4"))
+;; Package-Requires: ((s "1") (org "7") (auctex "11"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -70,7 +70,7 @@
 ;; vars
 
 ;; timesheet-version should match the Version comment above
-(defconst timesheet-version "0.2.33")
+(defconst timesheet-version "0.3.0")
 
 (defconst timesheet-path (file-name-directory (or load-file-name (buffer-file-name))))
 
@@ -820,7 +820,7 @@ If DELETE-EXISTING-WEEK is set then the old heading is removed."
 ;; BUG: this is USD centric :(
 (defun timesheet-currency (v)
   "Return currency value for V."
-  (let* ((fv (format "$%3.2f" v))
+  (let* ((fv (format "$%3.2f" (or v 0)))
          (len (length fv)))
     (cond ((>= v 1000000.00)
            (concat (substring fv 0 (- len 9)) ","
@@ -898,6 +898,15 @@ Current month or month for TIME if present."
   "Calculate invoice this month."
   (interactive)
   (timesheet-invoice (timesheet-this-month)))
+
+;;;###autoload
+(defun timesheet-invoice-at-point ()
+  "Calculate invoice at point (a CLOCK line)."
+  (interactive)
+  (let ((day (timesheet-at-point)))
+    (if day
+        (timesheet-invoice day)
+      (message (concat "no " org-clock-string " at point!")))))
 
 ;;;###autoload
 (defun timesheet-invoice-last ()
@@ -1124,8 +1133,7 @@ Current month or month for TIME if present."
     (org-table-export)
     (timesheet-table-goto detail-top 3 (+ row 2))
     (setq total-hours (s-trim (substring-no-properties (caar (org-table-copy-region (point) (point))))))
-    (org-table-next-field)
-    (org-table-next-field)
+    (timesheet-table-goto detail-top 5 (+ row 2))
     (setq amount-due (s-trim (substring-no-properties (caar (org-table-copy-region (point) (point))))))
     (org-get-last-sibling) ; Detail
     (org-get-last-sibling) ; Header
