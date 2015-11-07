@@ -98,14 +98,14 @@ do_latex() {
         vecho "--- latex ---"
     fi
     # header.tsv -> header.tex
-    remitto1="$(tail -n +2 header.tsv | head -1 | cut -f1)"
+    remitto1="$(echo $(tail -n +2 header.tsv | head -1 | cut -f1) | sed 's/#/\\\#/g')"
     billdate="$(tail -n +2 header.tsv | head -1 | cut -f2)"
     invoice="$(tail -n +2 header.tsv | head -1 | cut -f3)"
     # echo "company=$company="
     # echo "billdate=$billdate="
     # echo "invoice=$invoice="
-    remitto2="$(tail -n +3 header.tsv | head -1 | cut -f1)"
-    remitto3="$(tail -n +4 header.tsv | head -1 | cut -f1)"
+    remitto2="$(echo $(tail -n +3 header.tsv | head -1 | cut -f1) | sed 's/#/\\\#/g')"
+    remitto3="$(echo $(tail -n +4 header.tsv | head -1 | cut -f1) | sed 's/#/\\\#/g')"
     billto1="$(tail -n +6 header.tsv | head -1 | cut -f1)"
     terms="$(tail -n +6 header.tsv | head -1 | cut -f2)"
     duedate="$(tail -n +6 header.tsv | head -1 | cut -f3)"
