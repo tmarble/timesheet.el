@@ -98,6 +98,7 @@ do_latex() {
         vecho "--- latex ---"
     fi
     # header.tsv -> header.tex
+    header="header.tex"
     remitto1="$(echo $(tail -n +2 header.tsv | head -1 | cut -f1) | sed 's/#/\\\#/g')"
     billdate="$(tail -n +2 header.tsv | head -1 | cut -f2)"
     invoice="$(tail -n +2 header.tsv | head -1 | cut -f3)"
@@ -113,22 +114,24 @@ do_latex() {
     billto3="$(tail -n +8 header.tsv | head -1 | cut -f1)"
     hours="$(tail -n +10 header.tsv | head -1 | cut -f1)"
     amount="$(tail -n +10 header.tsv | head -1 | cut -f2)"
-    echo "%% header.tex" > header.tex
+    echo "%% $header" > $header.in
     b='\'
-    printf "%sdef%sinvoice{$invoice}\n" $b $b >> header.tex
-    printf "%sdef%sbilldate{$billdate}\n" $b $b >> header.tex
-    printf "%sdef%sduedate{$duedate}\n" $b $b >> header.tex
-    printf "%sdef%sterms{$terms}\n" $b $b >> header.tex
-    printf "%sdef%shours{$hours}\n" $b $b >> header.tex
-    printf "%sdef%samount{%s$amount}\n" $b $b $b >> header.tex
-    printf "%sdef%sremittoA{$remitto1}\n" $b $b >> header.tex
-    printf "%sdef%sremittoB{$remitto2}\n" $b $b >> header.tex
-    printf "%sdef%sremittoC{$remitto3}\n" $b $b >> header.tex
-    printf "%sdef%sbilltoA{$billto1}\n" $b $b >> header.tex
-    printf "%sdef%sbilltoB{$billto2}\n" $b $b >> header.tex
-    printf "%sdef%sbilltoC{$billto3}\n" $b $b >> header.tex
+    printf "%sdef%sinvoice{$invoice}\n" $b $b >> $header.in
+    printf "%sdef%sbilldate{$billdate}\n" $b $b >> $header.in
+    printf "%sdef%sduedate{$duedate}\n" $b $b >> $header.in
+    printf "%sdef%sterms{$terms}\n" $b $b >> $header.in
+    printf "%sdef%shours{$hours}\n" $b $b >> $header.in
+    printf "%sdef%samount{$amount}\n" $b $b >> $header.in
+    printf "%sdef%sremittoA{$remitto1}\n" $b $b >> $header.in
+    printf "%sdef%sremittoB{$remitto2}\n" $b $b >> $header.in
+    printf "%sdef%sremittoC{$remitto3}\n" $b $b >> $header.in
+    printf "%sdef%sbilltoA{$billto1}\n" $b $b >> $header.in
+    printf "%sdef%sbilltoB{$billto2}\n" $b $b >> $header.in
+    printf "%sdef%sbilltoC{$billto3}\n" $b $b >> $header.in
+    sed -e 's/\$/\\$/g' -e 's/#/\\#/g' -e 's/£/\\pounds{}/g' -e 's/€/\\euro{}/g' $header.in > $header
     # detail.tsv -> detail.tex
-    echo "%% detail.tex" > detail.tex
+    detail=detail.tex
+    echo "%% $detail" > $detail.in
     n=$(wc -l detail.tsv | awk {'print $1'})
     i=2
     while [ $i -lt $n ]; do
@@ -137,13 +140,14 @@ do_latex() {
         hours="$(tail -n +$i detail.tsv | head -1 | cut -f3)"
         rate="$(tail -n +$i detail.tsv | head -1 | cut -f4)"
         subtotal="$(tail -n +$i detail.tsv | head -1 | cut -f5)"
-        printf "%s & %s & %s & %s$%s & %s$%s %s%s %shline\n" "$day" "$projects" "$hours" $b "$rate" $b "$subtotal" $b $b $b >> detail.tex
+        printf "%s & %s & %s & %s & %s %s%s %shline\n" "$day" "$projects" "$hours" "$rate"  "$subtotal" $b $b $b >> $detail.in
         i=$(($i + 1))
     done
-    printf "%smulticolumn{2}{|r|}{%scellcolor[gray]{0.9} %s } &\n" $b $b $b >> detail.tex
-    printf "%scellcolor[gray]{0.9} %shours &\n" $b $b >> detail.tex
-    printf "%scellcolor[gray]{0.9} %stextbf{Total} &\n" $b $b >> detail.tex
-    printf "%scellcolor[gray]{0.9} %stextbf{%samount} %s%s %shline\n" $b $b $b $b $b $b >> detail.tex
+    printf "%smulticolumn{2}{|r|}{%scellcolor[gray]{0.9} %s } &\n" $b $b $b >> $detail.in
+    printf "%scellcolor[gray]{0.9} %shours &\n" $b $b >> $detail.in
+    printf "%scellcolor[gray]{0.9} %stextbf{Total} &\n" $b $b >> $detail.in
+    printf "%scellcolor[gray]{0.9} %stextbf{%samount} %s%s %shline\n" $b $b $b $b $b $b >> $detail.in
+    sed -e 's/\$/\\$/g' -e 's/#/\\#/g' -e 's/£/\\pounds{}/g' -e 's/€/\\euro{}/g' $detail.in > $detail
     # run LaTeX
     texbase=main
     tmpdir="$invoice_dir/auto"

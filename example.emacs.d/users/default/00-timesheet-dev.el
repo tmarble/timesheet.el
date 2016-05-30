@@ -45,4 +45,4 @@
 	;; must re-load to take timesheet into account...
 	(load elpa-pkgname-el)))))
 
-(package-update 'timesheet "0.3.0" "/var/tmp")
+(package-update 'timesheet "0.4.0" "/var/tmp")

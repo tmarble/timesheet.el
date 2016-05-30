@@ -2,7 +2,7 @@
 # This Makefile is only used during development to create a tarball
 # for rapid prototyping
 
-ORIGIN := $(shell git remote -v | awk '{print $$2; exit;}')
+ORIGIN := $(shell git remote -v | awk '{print $$2; exit;}' | sed 's/.git$$//' )
 REPO := $(shell basename $(ORIGIN))
 NAME := $(subst .el,,$(REPO))
 PKG := $(NAME)-pkg.el

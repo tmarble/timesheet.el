@@ -4,8 +4,8 @@
 
 ;; Author: Tom Marble
 ;; URL: https://github.com/tmarble/timesheet.el
-;; Version: 0.3.0
-;; Created: 2015-08-31
+;; Version: 0.4.0
+;; Created: 2016-05-29
 ;; Keywords: org timesheet
 ;; Package-Requires: ((s "1") (org "7") (auctex "11"))
 
@@ -70,13 +70,18 @@
 ;; vars
 
 ;; timesheet-version should match the Version comment above
-(defconst timesheet-version "0.3.0")
+(defconst timesheet-version "0.4.0")
 
 (defconst timesheet-path (file-name-directory (or load-file-name (buffer-file-name))))
 
 (defun timesheet-home-dir ()
   "Return the user's HOME directory."
   (file-name-as-directory (expand-file-name "~")))
+
+(defconst timesheet-currencies
+  '(("USD" . "$")
+    ("GBP" . "£")
+    ("EUR" . "€")))
 
 ;; customizations
 
@@ -142,6 +147,14 @@
 
 ;; functions
 
+(defun timesheet-get-file-property (property)
+  "Return the value of the file PROPERTY (or nil if not found)"
+  (cdr (assoc-string property org-file-properties t)))
+
+(defun timesheet-get-currency-symbol (currency)
+  "Return the currency symbol for CURRENCY (or nil if not found)"
+  (cdr (assoc-string currency timesheet-currencies)))
+
 (defun timesheet-template-files ()
   "Return a list of pathnames for timesheet template files."
   (let ((share-dir (expand-file-name "share" timesheet-path)))
@@ -177,8 +190,11 @@
     (setq tup (cons s (cons m (cons h rest))))
     tup))
 
+;; timesheet-get-heading-path should return
+;; ("Tasks" "ProjectName" "GoalName" "TaskName")
 (defun timesheet-get-heading-path ()
   "Return the full heading path."
+  ;; NOTE: for a brief moment a version of org worked with simply (org-get-outline-path)
   (append (org-get-outline-path) (list (nth 4 (org-heading-components)))))
 
 ;;;###autoload
@@ -231,8 +247,7 @@ Otherwise, return nil.  Optionally using WITHPATH."
 	  (insert " => " (format "%s -- %s @ %5.2f" ts te fh))
           (if withpath
               (list ets ete fh (timesheet-get-heading-path))
-            (list ets ete fh))
-          ))))))
+            (list ets ete fh))))))))
 
 (defun timesheet-same-day-p (t1 t2)
   "Return true of T1 and T2 (timelist format) are on the same day."
@@ -306,24 +321,23 @@ Otherwise, return nil.  Optionally using WITHPATH."
          (m-head (org-goto-first-child))
          found
          firstmonth)
-    (unless m-head
-      (setq firstmonth t))
-    (while m-head
+    (unless m-head ;; no months have been entered yet
+      (setq firstmonth t)
+      (end-of-line)
+      (org-insert-subheading t))
+    (while m-head ;; checking for a matching month
       (let* ((m (nth 4 (org-heading-components)))
              (prev (point)))
-        (if (string= m yyyy-mm)
+        (if (string= m yyyy-mm) ;; found it!
             (progn
               (setq m-head nil)
               (setq found t))
           (setq m-head (org-get-next-sibling)))
         (unless m-head ;; we have no children
           (goto-char prev)
-          (end-of-line))
-        )
-      )
+          (end-of-line))))
     (unless found
-      (if firstmonth
-          (org-insert-heading)
+      (unless firstmonth
         (org-insert-heading-after-current))
       (insert yyyy-mm)))
   (beginning-of-line))
@@ -341,7 +355,9 @@ Otherwise, return nil.  Optionally using WITHPATH."
          firstday)
     ;; (timesheet-debug-msg "looking for " dday)
     (unless d-head ;; no days yet
-      (setq firstday t))
+      (setq firstday t)
+      (end-of-line)
+      (org-insert-subheading t))
     (while d-head
       (let* ((d (nth 4 (org-heading-components)))
              (prev (point)))
@@ -355,19 +371,12 @@ Otherwise, return nil.  Optionally using WITHPATH."
         (unless d-head ;; no more kids
           ;; (timesheet-debug-msg "no more kids")
           (goto-char prev)
-          (end-of-line))
-        )
-      )
+          (end-of-line))))
     (unless found
       ;; (timesheet-debug-msg "NOT found")
-      (if firstday
-          (org-insert-heading)
+      (unless firstday
         (org-insert-heading-after-current))
-      (insert dday)
-      (when firstday
-        (org-do-demote))
-      )
-    ))
+      (insert dday))))
 
 (defun timesheet-cmp-task (atask btask)
   "Compare two tasks and return t if ATASK < BTASK."
@@ -410,8 +419,7 @@ Otherwise, return nil.  Optionally using WITHPATH."
           (progn
             (setq a0 nil)
             (setq cmp nil))))
-      cmp
-      )))
+      cmp)))
 
 (defun timesheet-rollup-times (clocks)
   "Sort and rollup CLOCKS."
@@ -473,8 +481,7 @@ Otherwise, return nil.  Optionally using WITHPATH."
     (unless (= project-hours 0.0)
       (push (list prev-project-path nil nil project-hours) tasks))
     (push (list nil nil nil day-hours) tasks)
-    tasks
-    ))
+    tasks))
 
 (defun timesheet-calc (day)
   "Calculate timesheet for the given DAY."
@@ -503,9 +510,7 @@ Otherwise, return nil.  Optionally using WITHPATH."
             (setq p (1- p)))
           (insert (format " %s = %3.2f hours" (car (last path)) hours))
           )
-        (setq prevpath path)
-        ))
-    ))
+        (setq prevpath path)))))
 
 (defun timesheet-clocks (start-time end-time)
   "Return a list of clocks for the time interval given by START-TIME and END-TIME."
@@ -522,8 +527,7 @@ Otherwise, return nil.  Optionally using WITHPATH."
                      (time-less-p (car sehp) end-time))
             (push sehp day-times))
           (beginning-of-line 0))
-        day-times
-        ))))
+        day-times))))
 
 ;;;###autoload
 (defun timesheet-calc-today ()
@@ -592,8 +596,7 @@ Otherwise, return nil.  Optionally using WITHPATH."
           (setq prev first)
           (setq first (car heading))
           )
-        (sort project-times 'timesheet-cmp-string-lists)
-        ))))
+        (sort project-times 'timesheet-cmp-string-lists)))))
 
 (defun timesheet-goto-weekly ()
   "Goto (or create) the Weekly heading."
@@ -647,8 +650,7 @@ If DELETE-EXISTING-WEEK is set then the old heading is removed."
       (when firstweek
         (org-demote-subtree)))
     (beginning-of-line)
-    week-label
-    ))
+    week-label))
 
 ;;;###autoload
 (defun timesheet-table-goto (top col row)
@@ -699,7 +701,7 @@ If DELETE-EXISTING-WEEK is set then the old heading is removed."
     (insert "|           |     |     |     |     |     |     |     |         |\n")
     (insert "|-----------+-----+-----+-----+-----+-----+-----+-----+---------|\n")
     (insert "| /Daily/   |     |     |     |     |     |     |     |         |\n")
-    (insert "#+TBLFM: @2$9..@-1$9=vsum($2..$8);%.2f;::@>$2..@>$9='(format \"%3.2f\" (apply '+ '(@2..@-1)));N;\n")
+    (insert "#+TBLFM: @2$9..@>$9=vsum($2..$8);%.2f;::@>$2..@>$8='(format \"%3.2f\" (apply '+ '(@2..@-1)));N;\n")
     (insert "#+END:")
     ;; sort by project
     (dolist (p project-rows)
@@ -714,19 +716,16 @@ If DELETE-EXISTING-WEEK is set then the old heading is removed."
           (org-table-insert-row t))
         (timesheet-table-goto table-top 1 row)
         (insert p)
-        (setq row (1+ row))
-        ))
+        (setq row (1+ row))))
     (goto-char table-top)
     (dolist (pt project-times)
       (timesheet-table-goto table-top
                   (cdr (assoc (nth 1 pt) dates-cols))
                   (cdr (assoc (car pt) project-rows)))
-      (insert (nth 2 pt))
-      )
+      (insert (nth 2 pt)))
     ;; compute formulae in table
     (org-table-iterate)
-    (org-table-align)
-    ))
+    (org-table-align)))
 
 (defun timesheet-week-time (time)
   "Round TIME to beginning of the week."
@@ -817,10 +816,11 @@ If DELETE-EXISTING-WEEK is set then the old heading is removed."
 ;;   (interactive)
 ;;   (timesheet-overlap (timesheet-yesterday)))
 
-;; BUG: this is USD centric :(
 (defun timesheet-currency (v)
   "Return currency value for V."
-  (let* ((fv (format "$%3.2f" (or v 0)))
+  (let* ((currency (timesheet-get-file-property "Currency"))
+         (currency-symbol (timesheet-get-currency-symbol (or currency "USD")))
+         (fv (format "%s%3.2f" currency-symbol (or v 0)))
          (len (length fv)))
     (cond ((>= v 1000000.00)
            (concat (substring fv 0 (- len 9)) ","
@@ -881,8 +881,7 @@ Current month or month for TIME if present."
                          (timesheet-days-in-month year month) ;; last day of month
                          month
                          year)))
-    (apply 'encode-time last-cal)
-    ))
+    (apply 'encode-time last-cal)))
 
 ;;;###autoload
 (defun timesheet-first-day-next-month (&optional time)
@@ -927,8 +926,7 @@ Current month or month for TIME if present."
       (goto-char (point-max))
       (insert "\n* Invoices\n")
       (forward-line -1))
-    (end-of-line)
-    ))
+    (end-of-line)))
 
 ;;;###autoload
 (defun timesheet-goto-invoice (month)
@@ -952,18 +950,13 @@ Current month or month for TIME if present."
           (setq m-head (org-get-next-sibling)))
         (unless m-head ;; we have no children
           (goto-char prev)
-          (end-of-line))
-        )
-      )
+          (end-of-line))))
     (when found
       (when (org-goto-first-child)
         (let ((invoice-str (org-entry-get nil "Invoice")))
           (when (stringp invoice-str)
-            (setq invoice (string-to-number invoice-str))
-            )
-          )
-        (outline-up-heading 1)
-        )
+            (setq invoice (string-to-number invoice-str))))
+        (outline-up-heading 1))
       (end-of-line)
       (insert "\n** old")
       (org-cut-subtree)
@@ -977,9 +970,7 @@ Current month or month for TIME if present."
         (org-insert-heading-after-current))
       (insert (concat yyyy-mm " Invoice #" (int-to-string invoice)))
       (when firstinvoice
-        (org-do-demote)
-        )
-      )
+        (org-do-demote)))
     (org-insert-heading)
     (org-do-demote)
     (insert "Header")
@@ -989,9 +980,7 @@ Current month or month for TIME if present."
     (outline-up-heading 1) ;; go back to the invoice heading
     (end-of-line)
     (message (concat "Invoice " (int-to-string invoice)))
-    invoice
-    )
-  )
+    invoice))
 
 (defun timesheet-american-month (month)
   "Using MONTH return Month DD, YYYY."
@@ -1076,14 +1065,14 @@ Current month or month for TIME if present."
     (org-return)
     (setq detail-top (point))
     (insert "#+BEGIN:\n")
-    (insert "|----------+-------------+----------+--------+-----------|\n")
-    (insert "| Date     | Description | Quantity |   Rate |    Amount |\n")
-    (insert "|----------+-------------+----------+--------+-----------|\n")
-    (insert "|          |             |          |        |           |\n")
-    (insert "|----------+-------------+----------+--------+-----------|\n")
-    (insert "| /Month/  |             |     0.00 |        |      0.00 |\n")
-    (insert "|----------+-------------+----------+--------+-----------|\n")
-    (insert "#+TBLFM: $4=$rate;%3.2f;::$5=$3*$rate;%3.2f;::@>$3=vsum(@2$3..@-1$3);%3.2f;::@>$4=string(\"/Total/\");::@>$5=vsum(@2$5..@-1$5);%3.2f::\n")
+    (insert "|----------+-------------+----------+--------+-----------|----|\n")
+    (insert "| Date     | Description | Quantity |   Rate |    Amount |  A |\n")
+    (insert "|----------+-------------+----------+--------+-----------|----|\n")
+    (insert "|          |             |          |        |           |    |\n")
+    (insert "|----------+-------------+----------+--------+-----------|----|\n")
+    (insert "| /Month/  |             |     0.00 |        |      0.00 |    |\n")
+    (insert "|----------+-------------+----------+--------+-----------|----|\n")
+    (insert "#+TBLFM:$4=$rate;%3.2f;::$6=$3*$rate;%3.2f;::$5='(timesheet-currency $6);N::@>$3=vsum(@2$3..@-1$3);%3.2f;::@>$4=string(\"/Total/\");::@>$6=vsum(@2$6..@-1$6;%3.2f;::@>$5='(timesheet-currency (apply '+ '(@2$6..@-1$6)));N::\n")
     (insert "#+END:")
     (org-get-last-sibling)
     (forward-line)
@@ -1125,15 +1114,21 @@ Current month or month for TIME if present."
         (org-table-next-field)
         (insert prev-projects)
         (org-table-next-field)
-        (insert prev-hours))
-      )
+        (insert prev-hours)))
     ;; compute formulae in table
     (org-table-iterate)
+    (timesheet-table-goto detail-top 1 2)
+    (org-table-insert-row t)
+    (timesheet-table-goto detail-top 5 3)
+    (insert "<r>")
+    (org-table-next-field)
+    (insert "<2>")
     (org-table-align)
+    ;; export
     (org-table-export)
-    (timesheet-table-goto detail-top 3 (+ row 2))
+    (timesheet-table-goto detail-top 3 (+ row 3))
     (setq total-hours (s-trim (substring-no-properties (caar (org-table-copy-region (point) (point))))))
-    (timesheet-table-goto detail-top 5 (+ row 2))
+    (timesheet-table-goto detail-top 6 (+ row 3))
     (setq amount-due (s-trim (substring-no-properties (caar (org-table-copy-region (point) (point))))))
     (org-get-last-sibling) ; Detail
     (org-get-last-sibling) ; Header
@@ -1146,8 +1141,7 @@ Current month or month for TIME if present."
     (org-table-align)
     (org-table-export)
     (timesheet-run timesheet-invoice-script "-d" "-v" "-i" invoice-dir "-p")
-    (message (concat yyyy-mm " Invoice #" invoice-str))
-    ))
+    (message (concat yyyy-mm " Invoice #" invoice-str))))
 
 (defun timesheet-run (script &rest args)
   "Run a company specific SCRIPT (with optional ARGS) to generate the timesheet."
