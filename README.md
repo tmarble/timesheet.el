@@ -24,10 +24,7 @@ does NOT have `~/.emacs.d`).
 6. Create an invoice (the example binding of `<f10> I` is to 'timesheet-invoice-at-point). You should see the invoice for Yoyodyne in USD. <br/>
   `<f10> I`
 7. Copy the GBP and EUR examples (`yoyodyne-uk.org`, `yoyodyne-fr.org`) to the home directory: <br/>
-````
-$ cd ~
-$ cp .emacs.d/elpa/timesheet-*/share/yoyodyne-*.org .
-````
+`cp .emacs.d/elpa/timesheet-*/share/yoyodyne-*.org ~/`
 8. Visit yoyodyne-uk.org, move the cursor to first clock entry, create an invoice
 for Yoyodyne England: <br/>
   `<f10> I`
@@ -109,6 +106,6 @@ There are several known bugs:
 
 ## License: GPLv3+
 
-This work is Copyright © 2014-2015 Informatique, Inc.
+This work is Copyright © 2014-2016 Informatique, Inc.
 
 and is licensed under the [GPL](LICENSE) version 3 or any later version.
