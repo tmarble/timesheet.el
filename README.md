@@ -10,30 +10,29 @@ correspond to this MELPA version: [![MELPA](https://melpa.org/packages/timesheet
 
 If you want to see how **timesheet.el** works quickly without changing your
 current configuration try the following in a test account (i.e. a user that
-does NOT have `/.emacs.d`).
+does NOT have `~/.emacs.d`).
 
 1. Make sure you have all the required Dependencies (see below)
-2. Copy the example Emacs configuration
+2. Copy the example Emacs configuration <br/>
    `cp -a src/github/tmarble/timesheet.el/example.emacs.d/ .emacs.d/`
-3. Start Emacs
+3. Start Emacs <br/>
    `emacs -nw --debug-init`
-4. Create an example timesheet
+4. Create an example timesheet <br/>
    `M-x timesheet-example`
-5. Move the cursor to the first clock entry
+5. Move the cursor to the first clock entry <br/>
 `CLOCK: [2014-04-01 Tue 08:30]--[2014-04-01 Tue 11:00] => 2014-04-01 Tue 08:30 -- 2014-04-01 Tue 11:00 @  2.50`
-6. Create an invoice (the example binding of `<f10> I` is to 'timesheet-invoice-at-point). You should see the invoice for Yoyodyne in USD.
+6. Create an invoice (the example binding of `<f10> I` is to 'timesheet-invoice-at-point). You should see the invoice for Yoyodyne in USD. <br/>
   `<f10> I`
-7. Copy the GBP and EUR examples (`yoyodyne-uk.org`, `yoyodyne-fr.org`) to the home directory:
-
+7. Copy the GBP and EUR examples (`yoyodyne-uk.org`, `yoyodyne-fr.org`) to the home directory: <br/>
 ````
 $ cd ~
 $ cp .emacs.d/elpa/timesheet-*/share/yoyodyne-*.org .
 ````
 8. Visit yoyodyne-uk.org, move the cursor to first clock entry, create an invoice
-for Yoyodyne England:
+for Yoyodyne England: <br/>
   `<f10> I`
 9. Visit yoyodyne-fr.org, move the cursor to first clock entry, create an invoice
-for Yoyodyne France:
+for Yoyodyne France: <br/>
   `<f10> I`
 
 *voila!*
@@ -63,8 +62,8 @@ Next steps...
 
 ## Currency
 
-An initial attempt has been made to make timesheet.el aware of different
-currencies. Currently timesheet understands USD, GBP and EUR.
+An initial attempt has been made to make **timesheet.el** aware of different
+currencies. Currently **timesheet.el** understands USD, GBP and EUR.
 Specify a currency by adding a proprty at the top of your org file:
 `#+PROPERTY: Currency GBP`
 
