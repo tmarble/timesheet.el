@@ -2,7 +2,7 @@
 
 Timesheet management add-on for Emacs org-mode
 
-NOTE: the latest stable version is `0.4.0` which should
+NOTE: the latest stable version is `0.4.1` which should
 
 correspond to this MELPA version: [![MELPA](https://melpa.org/packages/timesheet-badge.svg)](https://melpa.org/#/timesheet)
 
@@ -56,6 +56,30 @@ Next steps...
   * org clocking http://orgmode.org/org.html#Clocking-work-time
   * TODO items http://orgmode.org/org.html#TODO-Items
   * org spreadsheets http://orgmode.org/org.html#The-spreadsheet
+
+## Customizing each client
+
+You can customize certain constants and properties for each
+client by defining the following at thte the top of the org file:
+
+The properties are all used to fill in common parts of the invoice.
+
+The constants are:
+* customer: used to determine the directory to store the invoice
+* rate: hourly rate (NOTE: this could be abused to be a daily rate if you record one "hour" to represent quantity one at this rate)
+* roundmin: the number of minutes to round to. By default this is 15 minutes. The value could be between [1..60] inclusive.
+
+```
+#+CONSTANTS: customer=Yoyodyne rate=20.00 roundmin=10
+#+PROPERTY: RemitTo1 Emacs Consultants LLC
+#+PROPERTY: RemitTo2 123 Any Street
+#+PROPERTY: RemitTo3 Minneapolis, MN 55401
+#+PROPERTY: Terms Net 30
+#+PROPERTY: BillTo1 Yoyodyne, Inc.
+#+PROPERTY: BillTo2 451 Franklin Street
+#+PROPERTY: BillTo3 Boston, MA 02110-1301 USA
+```
+
 
 ## Currency
 

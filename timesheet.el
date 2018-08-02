@@ -1,11 +1,11 @@
 ;;; timesheet.el --- Timesheet management add-on for org-mode
 
-;; Copyright © 2014 Informatique, Inc.
+;; Copyright © 2014-2018 Informatique, Inc.
 
 ;; Author: Tom Marble
 ;; URL: https://github.com/tmarble/timesheet.el
-;; Version: 0.4.0
-;; Created: 2016-05-29
+;; Version: 0.4.1
+;; Created: 2018-08-01
 ;; Keywords: org timesheet
 ;; Package-Requires: ((s "1") (org "7") (auctex "11"))
 
@@ -70,7 +70,7 @@
 ;; vars
 
 ;; timesheet-version should match the Version comment above
-(defconst timesheet-version "0.4.0")
+(defconst timesheet-version "0.4.1")
 
 (defconst timesheet-path (file-name-directory (or load-file-name (buffer-file-name))))
 
@@ -161,13 +161,17 @@
     (directory-files share-dir t (concat "\\." (regexp-opt '("tex" "pdf" "org"))  "\\'"))))
 
 (defun timesheet-round-time-down (tl)
-  "Round the time in TL (timelist format) to the previous quarter hour."
+  "Round the time in TL (timelist format) to the previous quarter hour (default).
+The constant roundmin can be set to any value between 1 and 60 (default 15)."
   (let* ((s (car tl))
          (m (nth 1 tl))
          (h (nth 2 tl))
-         (rest (nthcdr 3 tl)))
+         (rest (nthcdr 3 tl))
+         (roundmin-str (org-table-get-constant "roundmin"))
+         (roundmin (if (string= roundmin-str "#UNDEFINED_NAME") 15
+                      (string-to-number roundmin-str))))
     (cons s
-          (cons (* (/ m 15) 15)
+          (cons (* (/ m roundmin) roundmin)
                 (cons h rest)))))
 
 (defun timesheet-round-time-up (tl)
@@ -176,10 +180,14 @@
          (m (nth 1 tl))
          (h (nth 2 tl))
          (rest (nthcdr 3 tl))
+         (roundmin-str (org-table-get-constant "roundmin"))
+         (roundmin (if (string= roundmin-str "#UNDEFINED_NAME") 15
+                      (string-to-number roundmin-str)))
          (md (nth 1 (timesheet-round-time-down tl)))
-         (mu (* (min 4 ;; most chunks possible is 4 * 15 = 60
-                     (/ (+ m 10) 15)) ;; within 5 min of 15 min boundary
-                15)) ; 15 min chunks
+         (mu (* (min (/ 60 roundmin) ;; most chunks possible is 4 * 15 = 60
+                     (floor (/ (+ m (floor (* 0.67 roundmin)))
+                               roundmin))) ;; within 5 min of 15 min boundary
+                roundmin)) ; 15 min chunks
          tup)
     (if (> mu md)
         (setq m mu)
