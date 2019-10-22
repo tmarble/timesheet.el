@@ -42,11 +42,30 @@ on configuring Emacs for [MELPA](http://melpa.milkbox.net/#/getting-started).
 Ensure TEXINPUT is set. Typically all you need to do is
 `(require 'preview)` as auctex will set this for you.
 
-Start by creating an example client...
-* ````M-x timesheet-example````
+**timesheet.el** expects that you'll use one file per client to be
+invoiced, with client-related metadata stored in file-level properties
+(see below). The file can contain any number of project-related
+headings, but all TODOs and associated time-clocks are expected to be
+found at level four (see example files).
 
-You will be viewing the buffer yoyodyne.org that already has some example time entries. Create an invoice with
-* ````M-x timesheet-invoice-this````
+A typical workflow involves clocking in and out of tasks during the
+course of the day, and then calling `timesheet-calc-today` at the end
+of the day. This will automatically generate a top-level heading
+called "Timesheet", containing a breakdown of time spent on various
+tasks. If it ever becomes necessary to update work done on previous
+days, simply put point on the updated CLOCK line and call
+`timesheet-calc-at-point`.
+
+When it comes time to create an invoice, call the command
+`timesheet-invoice-this`, which creates or finds a top-level heading
+called "Invoices", and creates an invoice for the current month, using
+the data from the "Timesheet" heading. You can also use
+`timesheet-invoice-at-point` to re-create past invoices.
+
+**timesheet.el** can also create weekly breakdowns of time spent
+per-project, using `timesheet-weekly-this` or
+`timesheet-weekly-at-point`. See the example files for possible
+keybindings.
 
 Next steps...
 * Customize your "company" directory where invoices are generated, your next invoice number, etc.
