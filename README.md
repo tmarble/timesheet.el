@@ -58,8 +58,8 @@ days, simply put point on the updated CLOCK line and call
 
 When it comes time to create an invoice, call the command
 `timesheet-invoice-this`, which creates or finds a top-level heading
-called "Timesheet", and creates an invoice for the current month,
-using the data from the "Timesheet" heading. You can also use
+called "Invoices", and creates an invoice for the current month, using
+the data from the "Timesheet" heading. You can also use
 `timesheet-invoice-at-point` to re-create past invoices.
 
 **timesheet.el** can also create weekly breakdowns of time spent
