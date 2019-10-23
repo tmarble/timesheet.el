@@ -589,21 +589,13 @@ Otherwise, return nil.  Optionally using WITHPATH."
   (save-excursion
     (save-restriction
       (timesheet-heading)
-      (let* ((heading (timesheet-get-heading-path))
-             (first (car heading)) ; Timesheet
-             (prev first)
-             (prevheading heading)
-             project-times)
-        (while (string= first prev) ; while we are in Timesheet
-          (unless (or (/= (length heading) 4)
-                      (timesheet-paths-same-p heading prevheading))
-            (push (cdr heading) project-times))
-          (forward-line)
-          (setq prevheading heading)
-          (setq heading (timesheet-get-heading-path))
-          (setq prev first)
-          (setq first (car heading))
-          )
+      (let (path project-times)
+	(org-map-tree
+	 (lambda ()
+	   (setq path (timesheet-get-heading-path))
+	   (when (and (= (length path) 4)
+		      (null (member path project-times)))
+	     (push (cdr path) project-times))))
         (sort project-times 'timesheet-cmp-string-lists)))))
 
 (defun timesheet-goto-weekly ()
