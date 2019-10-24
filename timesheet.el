@@ -107,6 +107,16 @@
   :type 'string
   :group 'timesheet)
 
+(defcustom timesheet-always-recalculate-times nil
+  "When non-nil, recalculate all times before creating invoices.
+Typically the user is expected to run `timesheet-calc-today' at
+the end of each day, creating the corresponding entry under the
+\"Timesheet\" heading.  If this option is non-nil, all day
+entries will be updated before creating an invoice.  This may
+slow down invoice creation."
+  :type 'boolean
+  :group 'timesheet)
+
 ;; get the next invoice number (and increment the counter)
 ;; if the argument is given.. set the next invoice number
 ;;;###autoload
@@ -558,6 +568,21 @@ Otherwise, return nil.  Optionally using WITHPATH."
         (timesheet-calc day)
       (message (concat "no " org-clock-string " at point!")))))
 
+(defun timesheet-calc-all ()
+  "Calculate timesheet for all dates in the buffer."
+  (let (seen day)
+    (save-excursion
+      (goto-char (point-max))
+      (while (null (bobp))
+	(when (and (timesheet-clock-update-timeclock)
+		   (null (member (setq day (timesheet-at-point)) seen)))
+	  (timesheet-calc-at-point)
+	  ;; This "seen" guard provides a bit of efficiency, but every
+	  ;; call to `timesheet-calc-at-point' is still running over
+	  ;; every clock line in the buffer.
+	  (push day seen))
+	(beginning-of-line 0)))))
+
 ;;;###autoload
 (defun timesheet-weekly-at-point ()
   "Calculate week for the date on this line."
@@ -589,6 +614,13 @@ Otherwise, return nil.  Optionally using WITHPATH."
   (save-excursion
     (save-restriction
       (timesheet-heading)
+      (when (or timesheet-always-recalculate-times
+		;; Timesheet subtree is empty.
+		(= (line-number-at-pos)
+		   (save-excursion
+		     (org-end-of-subtree)
+		     (line-number-at-pos))))
+	(timesheet-calc-all))
       (let (path project-times)
 	(org-map-tree
 	 (lambda ()
