@@ -82,7 +82,7 @@ do_check() {
         share_dir="$(dirname $invoice_dir)"
         share_dir="$(dirname $share_dir)"
         share_dir="$(dirname $share_dir)/share"
-        echo "share_dir=$share_dir"
+        vecho "share_dir=$share_dir"
         for f in defs.tex main.tex logo.pdf; do
             cp "$share_dir/$f" ./
         done
@@ -147,19 +147,21 @@ do_latex() {
     printf "%scellcolor[gray]{0.9} %shours &\n" $b $b >> $detail.in
     printf "%scellcolor[gray]{0.9} %stextbf{Total} &\n" $b $b >> $detail.in
     printf "%scellcolor[gray]{0.9} %stextbf{%samount} %s%s %shline\n" $b $b $b $b $b $b >> $detail.in
+    printf "%sarrayrulecolor{white}\n" $b >> $detail.in
     sed -e 's/\$/\\$/g' -e 's/#/\\#/g' -e 's/£/\\pounds{}/g' -e 's/€/\\euro{}/g' $detail.in > $detail
     # run LaTeX
     texbase=main
-    tmpdir="$invoice_dir/auto"
-    mkdir -p "$tmpdir"
-    vecho "rubber --into=\"$tmpdir\" --pdf $texbase.tex"
-    if ! rubber --into="$tmpdir" --pdf $texbase.tex ; then
+    cd "$invoice_dir"
+    rm -f $texbase.aux $texbase.log $texbase.out $texbase.pdf $texbase.rubbercache
+    ls -AF
+    vecho "rubber --pdf $texbase.tex"
+    if ! rubber --pdf $texbase.tex ; then
         err "error running LaTeX"
         rv=1
     fi
     pdf="Invoice-$invoice.pdf"
-    if [ $rv -eq 0 ] && [ -f "$tmpdir/$texbase.pdf" ]; then
-        mv "$tmpdir/$texbase.pdf" "./$pdf"
+    if [ $rv -eq 0 ] && [ -f "$invoice_dir/$texbase.pdf" ]; then
+        mv "$invoice_dir/$texbase.pdf" "./$pdf"
         echo "created $pdf"
         rm -rf "$tmpdir"
     else

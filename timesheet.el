@@ -1,13 +1,13 @@
 ;;; timesheet.el --- Timesheet management add-on for org-mode
 
-;; Copyright © 2014-2018 Informatique, Inc.
+;; Copyright © 2014-2022 Informatique, Inc.
 
 ;; Author: Tom Marble
 ;; URL: https://github.com/tmarble/timesheet.el
-;; Version: 0.4.1
+;; Version: 0.5.0
 ;; Created: 2018-08-01
 ;; Keywords: org timesheet
-;; Package-Requires: ((s "1") (org "7") (auctex "11"))
+;; Package-Requires: ((s "1") (org "9"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -132,7 +132,7 @@ slow down invoice creation."
 ;; debug functions
 ;; these will probably be removed from a future version...
 
-(defvar timesheet-debug-msg-delay 3)
+(defvar timesheet-debug-msg-delay 1)
 
 ;;;###autoload
 (defun timesheet-debug-msg (&rest msgs)
@@ -159,7 +159,13 @@ slow down invoice creation."
 
 (defun timesheet-get-file-property (property)
   "Return the value of the file PROPERTY (or nil if not found)"
-  (cdr (assoc-string property org-file-properties t)))
+  (let ((regex (concat "^#\\+PROPERTY: " property)))
+    (save-excursion
+      (beginning-of-line 1)
+      (when (re-search-forward regex nil t)
+        (substring
+         (org-element-property :value (org-element-at-point))
+         (1+ (length property)))))))
 
 (defun timesheet-get-currency-symbol (currency)
   "Return the currency symbol for CURRENCY (or nil if not found)"
@@ -733,7 +739,7 @@ If DELETE-EXISTING-WEEK is set then the old heading is removed."
     (insert "|           |     |     |     |     |     |     |     |         |\n")
     (insert "|-----------+-----+-----+-----+-----+-----+-----+-----+---------|\n")
     (insert "| /Daily/   |     |     |     |     |     |     |     |         |\n")
-    (insert "#+TBLFM: @2$9..@>$9=vsum($2..$8);%.2f;::@>$2..@>$8='(format \"%3.2f\" (apply '+ '(@2..@-1)));N;\n")
+    (insert "#+TBLFM: @2$9..@II$9 = vsum($2..$8);%.2f :: @>$2..@>$9 = '(format \"%3.2f\" (apply '+ '(@II..@III)));N\n")
     (insert "#+END:")
     ;; sort by project
     (dolist (p project-rows)
@@ -1104,7 +1110,7 @@ Current month or month for TIME if present."
     (insert "|----------+-------------+----------+--------+-----------|----|\n")
     (insert "| /Month/  |             |     0.00 |        |      0.00 |    |\n")
     (insert "|----------+-------------+----------+--------+-----------|----|\n")
-    (insert "#+TBLFM:$4=$rate;%3.2f;::$6=$3*$rate;%3.2f;::$5='(timesheet-currency $6);N::@>$3=vsum(@2$3..@-1$3);%3.2f;::@>$4=string(\"/Total/\");::@>$6=vsum(@2$6..@-1$6;%3.2f;::@>$5='(timesheet-currency (apply '+ '(@2$6..@-1$6)));N::\n")
+    (insert "#+TBLFM:$4='(format \"%3.2f\" $rate);:: $6='(format \"%3.2f\" (* $3 $rate));L:: $5='(timesheet-currency $6);N:: @>$3='(format \"%3.2f\" (apply '+ '(@II..@III)));N:: @>$4=string(\"/Total/\");:: @>$6='(format \"%3.2f\" (apply '+ '(@II..@III)));N:: @>$5='(timesheet-currency @>$6);N::\n")
     (insert "#+END:")
     (org-get-last-sibling)
     (forward-line)
@@ -1119,7 +1125,6 @@ Current month or month for TIME if present."
                (project-total (nth 2 pt)) ;; SuperProject = 6.50 hours
                day project hours)
           (when (string= ym yyyy-mm) ;; this month
-            (message (format "entry %s == %s" ym yyyy-mm))
             (when (string-match "^\\([0-9\-]+\\) ... = \\([0-9\.]+\\) hours" day-total)
               (setq day (match-string 1 day-total))
               (setq hours (match-string 2 day-total))
