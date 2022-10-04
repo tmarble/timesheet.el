@@ -2,7 +2,7 @@
 
 Timesheet management add-on for Emacs org-mode
 
-NOTE: the latest stable version is `0.4.1` which should
+NOTE: the latest stable version is `0.5.0` which should
 
 correspond to this MELPA version: [![MELPA](https://melpa.org/packages/timesheet-badge.svg)](https://melpa.org/#/timesheet)
 

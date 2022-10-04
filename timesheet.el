@@ -5,7 +5,7 @@
 ;; Author: Tom Marble
 ;; URL: https://github.com/tmarble/timesheet.el
 ;; Version: 0.5.0
-;; Created: 2018-08-01
+;; Created: 2022-10-04
 ;; Keywords: org timesheet
 ;; Package-Requires: ((s "1") (org "9"))
 
@@ -70,7 +70,7 @@
 ;; vars
 
 ;; timesheet-version should match the Version comment above
-(defconst timesheet-version "0.4.1")
+(defconst timesheet-version "0.5.0")
 
 (defconst timesheet-path (file-name-directory (or load-file-name (buffer-file-name))))
 

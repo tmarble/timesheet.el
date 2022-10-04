@@ -153,7 +153,6 @@ do_latex() {
     texbase=main
     cd "$invoice_dir"
     rm -f $texbase.aux $texbase.log $texbase.out $texbase.pdf $texbase.rubbercache
-    ls -AF
     vecho "rubber --pdf $texbase.tex"
     if ! rubber --pdf $texbase.tex ; then
         err "error running LaTeX"
